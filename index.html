@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WEBRTC</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="public/assets/css/main.css">
+</head>
+<body>
+<div class="container">
+    <div id="messages" class="col-md-12">
+        <h1 class="text-center">Messenger</h1>
+    </div>
+    <div class="row pt-1">
+        <div class="col-sm-5">
+            <form onsubmit="javascript:void(0)" novalidate autocomplete="off">
+                <div class="form-row align-items-center">
+                    <div class="col-sm-12 my-1">
+                        <div class="alert alert-success">My Information</div>
+                    </div>
+                    <div class="col-sm-12 my-1">
+                        <label for="username">Name</label>
+                        <input type="text" class="form-control" name="userName" id="userName" placeholder="name">
+                    </div>
+                    <div class="col-sm-12 my-1">
+                        <label for="roomName">Room</label>
+                        <input type="text" class="form-control" name="roomName" id="roomName" placeholder="room">
+                    </div>
+                    <div class="col-sm-2 pt-2">
+                        <button type="button" id="join" class="btn btn-danger">Join</button>
+                    </div>
+                    <div class="col-sm-2 pt-2">
+                        <button type="button" id="leave" class="btn btn-dark">Leave</button>
+                    </div>
+
+                </div>
+            </form>
+
+            <div class="row" id="work-space"></div>
+        </div>
+        <div class="col-sm-7">
+            <div class="row">
+                <div class="col-sm-12" style="height: 650px; overflow-y: scroll" id="chat"></div>
+                <div class="col-sm-12">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" placeholder="text here" name="message" id="message">
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="button" id="send">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.socket.io/4.1.2/socket.io.min.js"></script>
+<script>
+
+
+    let dev = true
+    let inRoom = false
+    let userName = null
+    let roomName = null
+    let message = ''
+    let socket = null
+    let host = dev ? 'http://localhost:3000' : 'http://yalla-dardasha-socket.herokuapp.com'
+    let configurations = {withCredentials: true}
+    connectToSocketIo(host, configurations)
+
+
+    document.getElementById('join').addEventListener('click', function () {
+        userName = document.getElementById('userName').value
+        roomName = document.getElementById('roomName').value
+        validate()
+    })
+    document.getElementById('send').addEventListener('click', function (e) {
+        message = document.getElementById('message').value
+        if (message.length === 0){
+            alert('Message Must Not Be Empty')
+        }else{
+            sendMessage({roomName: roomName, userName: userName, message: message})
+            document.getElementById('message').value = ''
+        }
+    })
+
+
+    document.getElementById('leave').addEventListener("click", function() {
+        socket.emit('leave', {roomName: roomName, userName: userName});
+    });
+
+    function connectToSocketIo(host, configurations) {
+        socket = io(host, configurations);
+    }
+    function validate() {
+        if (userName.length === 0){
+            alert('Username Must Not Be Empty')
+        }else if (roomName.length === 0){
+            alert('Username Must Not Be Empty')
+        }else{
+            joinRoom(roomName, userName)
+        }
+    }
+    function joinRoom(roomName, userName) {
+        socket.emit('join_or_create', {roomName: roomName, userName: userName})
+    }
+    function addNormalMessage(message){
+        document.getElementById('chat').innerHTML+= `<h6 class="text-center" style="color: gray">${message}</h6>`
+    }
+    function sendMessage(message) {
+        socket.emit('new_message', message)
+        addLocalMessage(message.message)
+    }
+    function addLocalMessage(message) {
+        document.getElementById('chat').innerHTML+= `<div class="alert alert-primary"><b>${userName}: </b>${message}</div>`
+    }
+    function addRemoteUserMessage(remoteUser, message) {
+        document.getElementById('chat').innerHTML+= `<div class="alert alert-warning" style="text-align: right">${message}<b> :${remoteUser}</b></div>`
+    }
+
+
+
+
+    socket.on('created', (data) => {
+        addNormalMessage(userName + " created the chat")
+        addNormalMessage("chat has (" + data.members + ") participants")
+        inRoom = true
+    })
+
+
+
+    socket.on('joined', (data) => {
+        addNormalMessage("chat has (" + data.members + ") participants")
+        inRoom = true
+    })
+
+    socket.on('new_member_joined', (data) => {
+        addNormalMessage(data.userName + " joined chat")
+    })
+
+    socket.on('left', (data) => {
+        addNormalMessage(data.userName + " left chat")
+    })
+
+    socket.on('new_message', (data) => {
+        addRemoteUserMessage(data.userName, data.message)
+    })
+
+
+
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "shefoo.io",
+  "version": "1.0.0",
+  "dependencies": {
+    "nodemon": "^2.0.7",
+    "socket.io": "^4.1.2"
+  },
+  "scripts": {
+    "start": "node chat.js"
+  }
+}
