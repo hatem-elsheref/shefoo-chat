@@ -42,6 +42,7 @@
             <div class="row">
                 <div class="col-sm-12" style="height: 650px; overflow-y: scroll" id="chat"></div>
                 <div class="col-sm-12">
+                    <p id="typing"></p>
                     <div class="input-group mb-3">
                         <input type="text" class="form-control" placeholder="text here" name="message" id="message">
                         <div class="input-group-append">
@@ -59,12 +60,13 @@
 <script>
 
 
-    let dev = false
+    let dev = true
     let inRoom = false
     let userName = null
     let roomName = null
     let message = ''
     let socket = null
+    let typing = false
     let host = dev ? 'http://localhost:3000' : 'https://shefoo-chat.herokuapp.com/'
     let configurations = {withCredentials: true}
     connectToSocketIo(host, configurations)
@@ -84,12 +86,17 @@
             document.getElementById('message').value = ''
         }
     })
-
-
     document.getElementById('leave').addEventListener("click", function() {
         socket.emit('leave', {roomName: roomName, userName: userName});
     });
+    document.getElementById('message').addEventListener('keyup', function (){
+        socket.emit('typing', {status: true, roomName: roomName})
+        setTimeout(typingBehaviour, 2000)
+    })
 
+    function typingBehaviour(){
+        socket.emit('typing', {status: false, roomName: roomName})
+    }
     function connectToSocketIo(host, configurations) {
         socket = io(host, configurations);
     }
@@ -127,24 +134,21 @@
         addNormalMessage("chat has (" + data.members + ") participants")
         inRoom = true
     })
-
-
-
     socket.on('joined', (data) => {
         addNormalMessage("chat has (" + data.members + ") participants")
         inRoom = true
     })
-
     socket.on('new_member_joined', (data) => {
         addNormalMessage(data.userName + " joined chat")
     })
-
     socket.on('left', (data) => {
         addNormalMessage(data.userName + " left chat")
     })
-
     socket.on('new_message', (data) => {
         addRemoteUserMessage(data.userName, data.message)
+    })
+    socket.on('typing', (data) => {
+        document.getElementById('typing').innerHTML = data ? 'typing...' : ''
     })
 
 

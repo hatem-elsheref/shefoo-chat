@@ -39,7 +39,6 @@ io.sockets.on('connection', function(socket) {
             socket.emit('error','couldnt perform requested action');
         }
     })
-
     socket.on('leave',function(data){
         try{
             socket.leave(data.roomName);
@@ -48,34 +47,38 @@ io.sockets.on('connection', function(socket) {
             socket.emit('error','couldnt perform requested action');
         }
     })
-
-
     socket.on('new_message', function(data) {
         socket.to(data.roomName).emit('new_message', {userName: data.userName, message: data.message});
     })
 
 
-    socket.on('message', function(message) {
-        // for a real app, would be room-only (not broadcast)
-        socket.broadcast.emit('message', message);
+    socket.on('typing', (data) => {
+        socket.to(data.roomName).emit('typing', data.status);
     })
 
 
-    socket.on('ipaddr', function() {
-        const ifaces = os.networkInterfaces();
-        for (const dev in ifaces) {
-            ifaces[dev].forEach(function(details) {
-                if (details.family === 'IPv4' && details.address !== '127.0.0.1') {
-                    socket.emit('ipaddr', details.address);
-                }
-            });
-        }
-    });
 
 
-    socket.on('bye', function(){
-        console.log('received bye');
-    });
+    // socket.on('message', function(message) {
+    //     // for a real app, would be room-only (not broadcast)
+    //     socket.broadcast.emit('message', message);
+    // })
+    //
+    // socket.on('ipaddr', function() {
+    //     const ifaces = os.networkInterfaces();
+    //     for (const dev in ifaces) {
+    //         ifaces[dev].forEach(function(details) {
+    //             if (details.family === 'IPv4' && details.address !== '127.0.0.1') {
+    //                 socket.emit('ipaddr', details.address);
+    //             }
+    //         });
+    //     }
+    // });
+    //
+    //
+    // socket.on('bye', function(){
+    //     console.log('received bye');
+    // });
 });
 
 
