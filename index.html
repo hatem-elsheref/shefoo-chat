@@ -59,13 +59,13 @@
 <script>
 
 
-    let dev = true
+    let dev = false
     let inRoom = false
     let userName = null
     let roomName = null
     let message = ''
     let socket = null
-    let host = dev ? 'http://localhost:3000' : 'http://yalla-dardasha-socket.herokuapp.com'
+    let host = dev ? 'http://localhost:3000' : 'https://shefoo-chat.herokuapp.com/'
     let configurations = {withCredentials: true}
     connectToSocketIo(host, configurations)
 
