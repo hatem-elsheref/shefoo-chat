@@ -150,6 +150,9 @@
     socket.on('typing', (data) => {
         document.getElementById('typing').innerHTML = data ? 'typing...' : ''
     })
+    socket.on('fulled', (data) => {
+       alert(data.message)
+    })
 
 
 
